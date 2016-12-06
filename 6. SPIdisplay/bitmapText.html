@@ -1,0 +1,64 @@
+<html><head></head><body></body><script type="text/javascript">
+var textCapture   = document.createElement('canvas'),
+    ctx         = textCapture.getContext('2d'),
+    w           = textCapture.width = 128*5,
+    h           = textCapture.height= 64*5,
+    bitmap = [w*h/8],
+    formattedData        = window.document.createElement('p');
+
+formattedData.innerHTML = "" +
+    ";Width = "  + w + "<br/>" +
+    ";Height = " + h + "<br/>" +
+    ";bitmap = " + bitmap.length + "<br/>" + ".db\t";
+
+window.document.body.appendChild(textCapture);
+
+var offset = function(x,y) {return (y * textCapture.width + x) * 4;} // Get byte address from RGBA coord
+
+        ctx.font = "50px monospace";
+        ctx.textBaseline = "top";
+        ctx.fillStyle = "white";
+                  //  0123456789abcdef
+        ctx.fillText("The quick red fo", 0,0);
+
+        var imagedata = ctx.getImageData(0, 0, w, h);
+        var THRESHOLD = (128*3);
+        var saturation, monocrome;
+        for (x = 0; x < w; x++){
+            for (y = 0; y < h; y++){
+                // Get the cumulative saturation of the RGB channals
+                saturation =imagedata.data[offset(x,y) + 0] +
+                            imagedata.data[offset(x,y) + 1] +
+                            imagedata.data[offset(x,y) + 2] + 0;
+                // Set RGB to grayscale based on saturation vs threshold
+                monocrome = (saturation > THRESHOLD) ? 255 : 0;
+                imagedata.data[offset(x,y) + 0] = imagedata.data[offset(x,y) + 1] = imagedata.data[offset(x,y) + 2] = monocrome;
+                imagedata.data[offset(x,y) + 3] = 255;
+            }
+        }
+        // Write over canvas with monocrome image
+        ctx.putImageData(imagedata,0,0);
+
+        var bytecount = 0;
+        for (col = 0; col < 8; col++){
+            for (x = 0; x < 128; x++){
+                let bitmapByte = x + col * w;
+                bitmap[bitmapByte] = 0; // Start with 0
+                for (bit = 0; bit < 8; bit++){
+                    let px = x;
+                    let py = col * 8 + bit;
+                    let monochrome = (imagedata.data[offset(px, py) + 0] === 0) ? 0 : 1; // We can take the Red channel but doesn't matter which
+                    bitmap[bitmapByte] += monochrome << bit;
+                }
+                let hexVal = bitmap[x + col*w].toString(16);
+                formattedData.innerHTML += ((hexVal.length === 1) ? ("0x0" + hexVal) : ("0x" + hexVal)) + ", ";
+                if (++bytecount === 32){
+                    formattedData.innerHTML = formattedData.innerHTML.slice(0,-2) + "<br/>.db\t"; // remove last , and add carriage return
+                    bytecount = 0;
+                }
+            }
+        }
+        formattedData.innerHTML = formattedData.innerHTML.slice(0,-4);
+        window.document.body.appendChild(formattedData);
+        console.log("const uint8_t PIC_NAME[1024] PROGMEM = " + JSON.stringify(bitmap).replace('[', '{').replace(']','}') + ';');
+</script></html>

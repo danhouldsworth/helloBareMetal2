@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<!--
+NanoWii Setup GUI
+
+Dieses Projekt ist lizensiert als Inhalt der Creative Commons Namensnennung-Nicht-kommerziell 3.0 
+Unported-Lizenz. Um eine Kopie der Lizenz zu sehen, besuchen Sie http://creativecommons.org/licenses/by-nc/3.0/.
+(cc-by-nc)
+
+Autor: Felix Niessen (flyduino.net)
+-->
+<html>
+    
+    <head>
+        <script src="main.js"></script>
+        
+        <link rel="stylesheet" href="default.css" type="text/css">
+    </head>
+    
+    <body>
+	<div style="float:left; width:380px;height:50px;margin-top:25px;margin-left:15px;">
+		<span id="comsel" style="display:inline-block; width:90px; text-align:center;"></span><span  id="close" style="padding-left:15px;"></span><span  id="refresh"></span>
+	</div>
+	
+	<h2 style="position:absolute; top:13px; left:310px;">NanoWii setup tool <span style="font-size:10px;font-weight:normal;">v0.99</span></h2>
+	<div style="float:left; width:400px;height:50px; text-align:right;">
+	<a href="http://www.flyduino.net" target="_blank"><img style="margin-right:20px;margin-top:10px;" src="flyduino.png" alt="flyduino" /></a>
+	</div>
+	
+	<h4 style="clear:left;margin-left:20px; margin-right:20px; border-bottom:1px solid #fff;">Copter layout:</h4>
+	<div style="margin-left:20px; margin-right:20px;">
+		<img id="ct0" style="cursor:pointer;" src="img/bi.png" title="Bi Copter" />
+		<img id="ct1" style="cursor:pointer;" src="img/tri.png" title="Tri Copter" />
+		<img id="ct2" style="cursor:pointer;" src="img/quadp.png" title="Quadcopter Plus" />
+		<img id="ct3" style="cursor:pointer;" src="img/quadx.png"  title="Quadcopter X"/>
+		<img id="ct4" style="cursor:pointer;" src="img/y4.png" title="Y4 Quadcopter" />
+		<img id="ct5" style="cursor:pointer;" src="img/y6.png" title="Y6 Hexacopter " />
+		<img id="ct6" style="cursor:pointer;" src="img/hexfp.png" title="Hexacopter Plus" />
+		<img id="ct7" style="cursor:pointer;" src="img/hexfx.png" title="Hexacopter X" />
+		<img id="ct8" style="cursor:pointer;" src="img/vt4.png" title="V-Tail Quadcopter" />
+	</div>
+	
+	<h4 style="margin-left:20px; margin-right:20px; border-bottom:1px solid #fff;">Receiver setup:</h4>
+	<div style="margin-left:20px;float:left; width:380px;">
+		<img id="rxt0" style="cursor:pointer;" src="img/RX0.png" title="Standard RX" />
+		<img id="rxt1" style="cursor:pointer;" src="img/RX1.png" title="Spektrum Sat. 1024" />
+		<img id="rxt2" style="cursor:pointer;" src="img/RX2.png" title="Spektrum Sat. 2048" />
+		<img id="rxt3" style="cursor:pointer;" src="img/RX3.png" title="PPM Graupner/Spektrum => PITCH,YAW,THROTTLE,ROLL,AUX1,AUX2,AUX3,AUX4" />
+		<img id="rxt4" style="cursor:pointer;" src="img/RX4.png" title="PPM Robbe/Hitec/Futaba => ROLL,PITCH,THROTTLE,YAW,AUX1,AUX2,AUX3,AUX4" />
+		<img id="rxt5" style="cursor:pointer;" src="img/RX5.png" title="PPM Hitec/Sanwa/Others => PITCH,ROLL,THROTTLE,YAW,AUX1,AUX2,AUX3,AUX4" />
+
+	</div>
+	<div style="margin-left:10px;float:left; border-left:1px solid #FFF; height:60px; width:100px; padding-left:20px;">
+		Receiver Channel middle:<br />
+		<input id="rcmiddle" type="text" value="1500" style="width:50px;" title="Change this just if you can't trim your TX to 1500. best TX setting is 1000-1500-2000. +-20 is no problem" />
+		
+	</div>
+	<div style="float:left; height:60px; width:100px; padding-left:20px;">
+		Receiver Channel Max. Check:<br />
+		<input id="rcmax" type="text" value="1900" style="width:50px;"  title="Reduce this just if you can't trim your TX to get 1900 or more. best TX setting is 1000-1500-2000"/>
+		
+	</div>
+	<div style="float:left; height:60px; width:100px; padding-left:20px;">
+		Receiver Channel Min. Check:<br />
+		<input id="rcmin" type="text" value="1100"  style="width:50px;" title="Increase this just if you can't trim your TX to get 1100 or less. best TX setting is 1000-1500-2000" />
+	</div>
+	
+          <h4 style="clear:left; margin-left:20px; margin-right:20px; padding-top:10px; border-bottom:1px solid #fff;">ESC / Motor setup:</h4>
+		<div style="margin-left:20px;float:left; height:60px; width:100px;">
+		Min. Command:<br />(Motors Stop)<br />
+		<input id="escmin" type="text" value="1000" style="width:50px;" title="default:1000" />
+		
+	</div>
+	<div style="float:left; height:60px; width:100px; padding-left:10px;">
+		Min. Throttle:<br />(run Idle)<br />
+		<input id="escidle" type="text" value="1150" style="width:50px;"  title="default:1150. lower this if the motors run too fast when armed. Increase it if thay don't start."/>
+		
+	</div>
+	<div style="float:left; height:60px; width:100px; padding-left:10px;">
+		Max. Throttle:<br />(full speed)<br />
+		<input id="escmax" type="text" value="2000"  style="width:50px;" title="default:2000" />
+	</div>
+	<div style="float:left; height:60px; width:100px; padding-left:10px;">
+		OneShot125:<br />(UESC only)<br />
+		<select id="oneshot125"  style="width:50px;" title="default:no. activate this if your UltraESC's are set to Oneshot125 PWM speed. this will give you a more precise flight feeling">
+			<option id="os0" selected="selected" value="0">no</option>
+			<option id="os1" value="1">yes</option>
+		</select>
+	</div>
+	</div>
+	<div style="float:left; height:60px; width:100px; padding-left:10px;">
+		3D ESC:<br />(reversible)<br />
+		<select id="3desc"  style="width:50px;" title="default:no. activate this if your ESC's are set to work reversible (UltraESC's with reversible enabled, or simonk ESC's with RC_PULS_REVERSE enabled). you can still fly normal with such a setup.">
+			<option id="3d0" selected="selected" value="0">no</option>
+			<option id="3d1" value="1">yes</option>
+		</select>
+	</div>
+	<div style="float:left; height:60px; width:100px; padding-left:10px;">
+		3D ESC middle:<br /><br />
+		<input id="3dmid" type="text" value="1500"  style="width:50px;" title="default:1500 (UltraESC). simonk ESC's need 1460 here" />
+	</div>
+	<div style="float:left; height:60px; width:100px; padding-left:10px;">
+		3D Deadband:<br />(middle+-)<br />
+		<input id="3ddb" type="text" value="40"  style="width:50px;" title="default:40. this is the minthrottle for 3D ESC's, if the 3D flight is enabled(MWC GUI). its (3D ESC middle+3D Deadband) positive and (3D ESC middle-3D Deadband) negative." />
+	</div>
+	
+	
+	<h4 style="clear:left; margin-left:20px; margin-right:20px; padding-top:10px; border-bottom:1px solid #fff;">Other settings:</h4>
+	<div style="margin-left:20px; float:left; height:60px; width:80px;">
+		MPU6050<br /><span title="Low Pass Filter">LPF:</span><br />
+		<select id="MPUlpf"  style="width:70px;" title="default:42Hz. if your frame 'wobbles' lower the LPF frequency. if it feels unstable, rise or disable it">
+			<option id="lpf0" value="0">no LPF</option>
+			<option id="lpf1" value="1">188Hz</option>
+			<option id="lpf2" value="2">98Hz</option>
+			<option id="lpf3" selected="selected" value="3">42Hz</option>
+			<option id="lpf4" value="4">20Hz</option>
+			<option id="lpf5" value="5">10Hz</option>
+			<option id="lpf6" value="6">5Hz</option>
+		</select>
+	</div>
+	<div style="padding-left:10px; float:left; height:60px; width:60px;">
+		Arm on<br />RX stick:<br />
+		<select id="armstick"  style="width:50px;" title="default:Yaw. for Bi or Tricopters Roll is the better choice. you can always arm with a switch if you enable that in the MWC GUI">
+			<option id="as0" selected="selected" value="0">Yaw</option>
+			<option id="as1" value="1">Roll</option>
+		</select>
+	</div>
+	<div style="padding-left:10px; float:left; height:60px; width:80px;">
+		Servo PWM:<br />(Bi &amp; Tri)<br />
+		<select id="Spwm"  style="width:70px;" title="Warning! Analog Servos may get Damage if you set this to Digital!">
+			<option id="ds0" selected="selected" value="0">Analog Servo</option>
+			<option id="ds1" value="1">Digital Servo</option>
+		</select>
+	</div>
+	<div style="padding-left:10px; float:left; height:60px; width:60px;">
+		Yaw<br /> direction:<br />
+		<select id="yawd"  style="width:60px;" title="inverts the Yaw direction">
+			<option id="ya0" selected="selected" value="0">normal</option>
+			<option id="ya1" value="1">inverted</option>
+		</select>
+	</div>
+	<div style="float:left; height:60px; width:60px; padding-left:20px;">
+		Tri Yaw:<br />middle:<br />
+		<input id="tymid" type="text" value="1500"  style="width:50px;" title="default:1500" />
+	</div>
+	<div style="padding-left:20px; float:left; height:60px; width:60px;">
+		Bi Left<br />Servo dir.<br />
+		<select id="bild"  style="width:60px;" title="inverts the Bi left Servo direction">
+			<option id="bil0" selected="selected" value="0">normal</option>
+			<option id="bil1" value="1">inverted</option>
+		</select>
+	</div>
+	<div style="float:left; height:60px; width:60px; padding-left:20px;">
+		Bi Left<br />middle:<br />
+		<input id="bilmid" type="text" value="1500"  style="width:50px;" title="default:1500" />
+	</div>
+	<div style="padding-left:20px; float:left; height:60px; width:60px;">
+		Bi Right<br />Servo dir.<br />
+		<select id="bird"  style="width:60px;" title="inverts the Bi right Servo direction">
+			<option id="bir0" selected="selected" value="0">normal</option>
+			<option id="bir1" value="1">inverted</option>
+		</select>
+	</div>
+	<div style="float:left; height:60px; width:60px; padding-left:20px;">
+		Bi Right<br />middle:<br />
+		<input id="birmid" type="text" value="1500"  style="width:50px;" title="default:1500" />
+	</div>
+	
+	
+	
+	
+	<div id="blah" style="color:#FFF;"></div>
+	
+	<div style="padding:20px; position:absolute; bottom:0px; width:760px;">
+	<input type="button" value="Read"  id="read"  disabled="disabled" />
+	<input style="float:right;" type="button" value="Save and Reset"  id="write" disabled="disabled" />
+	</div>
+	
+
+	
+    </body>
+
+</html>

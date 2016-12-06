@@ -1,0 +1,69 @@
+<html><head></head><body></body><script type="text/javascript">
+var photoDrop   = document.createElement('canvas'),
+    ctx         = photoDrop.getContext('2d'),
+    w           = photoDrop.width = 8,
+    h           = photoDrop.height= 8,
+    bitmap = [w*h/8],
+    formattedData        = window.document.createElement('p');
+
+formattedData.innerHTML = "" +
+    ";Width = "  + w + "<br/>" +
+    ";Height = " + h + "<br/>" +
+    ";bitmap = " + bitmap.length + "<br/>" + ".db\t";
+
+window.document.body.appendChild(photoDrop);
+window.addEventListener('paste', function(event){
+    var offset = function(x,y) {return (y * photoDrop.width + x) * 4;} // Get byte address from RGBA coord
+    var item = event.clipboardData.items[0];    console.log("Got pasted item: " + item.type);
+    var file = item.getAsFile();
+    var reader = new FileReader();
+    reader.onload = function () {
+        var importedImage = new Image();
+        importedImage.onload = function() {
+            ctx.drawImage(importedImage, 0, 0, w, h);
+            var imagedata = ctx.getImageData(0, 0, w, h);
+            var THRESHOLD = (128*3);
+            var saturation, monocrome;
+            for (x = 0; x < w; x++){
+                for (y = 0; y < h; y++){
+                    // Get the cumulative saturation of the RGB channals
+                    saturation =imagedata.data[offset(x,y) + 0] +
+                                imagedata.data[offset(x,y) + 1] +
+                                imagedata.data[offset(x,y) + 2] + 0;
+                    // Set RGB to grayscale based on saturation vs threshold
+                    monocrome = (saturation > THRESHOLD) ? 0 : 255;
+                    imagedata.data[offset(x,y) + 0] = imagedata.data[offset(x,y) + 1] = imagedata.data[offset(x,y) + 2] = monocrome;
+                    imagedata.data[offset(x,y) + 3] = 255;
+                }
+            }
+            // Write over canvas with monocrome image
+            ctx.putImageData(imagedata,0,0);
+
+            var bytecount = 0;
+            for (col = 0; col < h; col++){
+                for (x = 0; x < w; x++){
+                    let bitmapByte = x + col * w;
+                    bitmap[bitmapByte] = 0; // Start with 0
+                    for (bit = 0; bit < 8; bit++){
+                        let px = x;
+                        let py = col * 8 + bit;
+                        let monochrome = (imagedata.data[offset(px, py) + 0] === 0) ? 1 : 0; // We can take the Red channel but doesn't matter which
+                        bitmap[bitmapByte] += monochrome << bit;
+                    }
+                    let hexVal = bitmap[x + col*w].toString(16);
+                    formattedData.innerHTML += ((hexVal.length === 1) ? ("0x0" + hexVal) : ("0x" + hexVal)) + ", ";
+                    if (++bytecount === 32){
+                        formattedData.innerHTML = formattedData.innerHTML.slice(0,-2) + "<br/>.db\t"; // remove last , and add carriage return
+                        bytecount = 0;
+                    }
+                }
+            }
+            formattedData.innerHTML = formattedData.innerHTML.slice(0,-4);
+            window.document.body.appendChild(formattedData);
+            console.log("const uint8_t PIC_NAME[1024] PROGMEM = " + JSON.stringify(bitmap).replace('[', '{').replace(']','}') + ';');
+        }
+        importedImage.src = reader.result;
+    };
+    reader.readAsDataURL( file );
+}, false);
+</script></html>

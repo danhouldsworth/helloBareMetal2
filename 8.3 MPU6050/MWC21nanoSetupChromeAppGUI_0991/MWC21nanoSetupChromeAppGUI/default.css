@@ -1,0 +1,65 @@
+body{
+	background:#000;
+	margin:0;
+	padding:0;
+	color:#FFF;
+	font-family:helvetica,arial,sans-serif;
+	font-size:12px;
+}
+
+img{
+	border:0;
+}
+
+select{
+	width:80px;
+	font-size:11px;
+	overflow:hidden;
+}
+
+td{
+	padding-left:8px;
+	padding-right:8px;
+}
+
+
+
+
+
+#live{
+	width:400px;
+	height:150px;
+	background:url('liveBG.jpg');
+	
+	
+}
+
+#livevals{
+	width:100px;
+	float:left;
+	height:150px;
+}
+#livevals div div{
+		margin-top:10px;
+	
+}
+#livedatas{
+	width:400px;
+	float:left;
+	height:150px;
+}
+#livedebug{
+	width:98px;
+	padding-left:2px;
+	padding-top:50px;
+	float:left;
+	height:100px;
+}
+
+
+
+
+
+
+
+
