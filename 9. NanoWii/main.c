@@ -50,7 +50,8 @@ ISR(TIMER0_OVF_vect) {
 
 void Init_Hardware() {
         cli();
-        UDIEN = 0;
+        // UDIEN = 0;
+        DDRB = 1 << 7;
         //============================================
         // Setup I2C at 400kHz
         //============================================
@@ -142,7 +143,8 @@ void displaySignedWordAsBlink(uint8_t highByte, uint8_t lowByte, char scaleFacto
     } else {
         word = word >> scaleFactor; // 1G --> 64
     }
-    PORTD ^=  (1 << 5);
+    // PORTD ^=  (1 << 5);
+    PORTB ^=  (1 << 7);
     if (word>1000) word = 1000;
     if (word<5) word = 5;
     wait(word);

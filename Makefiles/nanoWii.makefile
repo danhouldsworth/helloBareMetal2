@@ -1,4 +1,5 @@
-AVRDUDE = avrdude -p ATmega32u4 -c avr109 -P /dev/tty.usbmodem11
+# AVRDUDE = avrdude -p ATmega32u4 -c avr109 -P /dev/tty.usbmodem11
+AVRDUDE = avrdude -p ATmega32u4 -c avr109 -P /dev/tty.usbmodem1421
 
 all : build
 
