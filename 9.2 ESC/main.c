@@ -29,13 +29,7 @@ uint16_t startTime = 0;
 uint16_t pulseWidth = 0;
 
 uint8_t PWM_nFET = 'O';
-// uint8_t  ZC = 0;
-uint8_t  waitingForT0 = 1;
-// uint8_t  waitingForT2 = 1;
 
-ISR(TIMER0_OVF_vect){
-	waitingForT0 = 0; // ~64us per tick / ~16ms per full range
-}
 ISR(TIMER1_CAPT_vect){
 	uint16_t timer = ICR1;
 	uint8_t risingEdge = TCCR1B & (1 << ICES1);
@@ -46,12 +40,9 @@ ISR(TIMER1_CAPT_vect){
 		pulseWidth = timer - startTime;
 		TCCR1B |= (1<<ICES1); // Set next int to rising edge
 	}
-
 }
 
 ISR(TIMER2_COMP_vect){
-	// RED_OFF;
-	// return; !! TEST DUTY !!
 	switch (PWM_nFET){
 		case 'A' : AnFET_off; break;
 		case 'B' : BnFET_off; break;
@@ -61,8 +52,6 @@ ISR(TIMER2_COMP_vect){
 }
 
 ISR(TIMER2_OVF_vect){
-	// RED_ON;
-	// return; !! TEST DUTY !!
 	switch (PWM_nFET){
 		case 'A' : AnFET_on; break;
 		case 'B' : BnFET_on; break;
@@ -70,17 +59,9 @@ ISR(TIMER2_OVF_vect){
 		default : AnFET_off;BnFET_off;CnFET_off;
 	}
 }
-void wait128us(){
-	waitingForT0 = 1;
-	while(waitingForT0){}
-}
 void waitForEdge(uint8_t edgeCompType){
-	// return; // !! TEST DUTY WITH LED
 	uint8_t targetEdge = edgeCompType << ACO;
-	// waitingForT0 = 1;
-	// RED_ON;
 	while ( (ACSR & (1 << ACO)) != targetEdge){}
-	// RED_OFF;
 }
 
 void comparator_A(){
@@ -117,7 +98,7 @@ int main(void){
 	TCCR0 	= (1<<CS02) | (1<<CS01) | (0<<CS00); 				// Commutations	 2MHz
 	TCCR1B 	= (0<<CS12) | (0<<CS11) | (1<<CS10) | (1<<ICNC1); 	// RC INPUT 	16MHz[h/w noise reduction on Input Capture]
 	TCCR2 	= (0<<CS22) | (1<<CS21) | (0<<CS20); 				// FET PWM 		 2MHz
-	TIMSK 	= (1<<TOIE0)| (0<<TOIE1) | (1<<TOIE2) | (1<<TICIE1) | (1<<OCIE2);
+	TIMSK 	= (0<<TOIE0)| (0<<TOIE1) | (1<<TOIE2) | (1<<TICIE1) | (1<<OCIE2);
 	TIFR 	= (1<<TOIE0)| (1<<TOIE1) | (1<<TOIE2) | (1<<TICIE1) | (1<<OCIE2);
 
 	OCR2 	= 0;
@@ -146,8 +127,8 @@ int main(void){
 		} else {
 			GRN_ON;
 			OCR2 = (pulseWidth - 16000) >> 7;
-			if (OCR2 < 1) OCR2 = 1;
-			if (OCR2 > 50) OCR2 = 50;
+			if (OCR2 < 1) 	OCR2 = 1;
+			if (OCR2 > 50) 	OCR2 = 50;
 			TCNT2 = 0;
 			AnFET_off;BnFET_off;CnFET_off;
 			ApFET_off;BpFET_off;CpFET_off;
@@ -181,7 +162,6 @@ Estimations on crude timing
 	--> 7x43 = 301eRPS
 	--> ~3.3ms per loop
 	--> ~550us per commutation section
-	--> ~137ticks
 
 CS12 	CS11 	CS10	Description 	RATE 	Tick 	 Ticks/us 	8-bitOVF 	16-bitOVF
 0 		0 		0		No clock
