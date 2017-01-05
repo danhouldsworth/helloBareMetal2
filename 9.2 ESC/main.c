@@ -28,9 +28,10 @@
 uint16_t startTime = 0;
 uint16_t pulseWidth = 0;
 
+uint8_t PWM_nFET = 'O';
 // uint8_t  ZC = 0;
 uint8_t  waitingForT0 = 1;
-uint8_t  waitingForT2 = 1;
+// uint8_t  waitingForT2 = 1;
 
 ISR(TIMER0_OVF_vect){
 	waitingForT0 = 0; // ~64us per tick / ~16ms per full range
@@ -47,36 +48,39 @@ ISR(TIMER1_CAPT_vect){
 	}
 
 }
-// ISR(TIMER1_OVF_vect){
-// 	ZC = 1; // if haven't detected ZC break out of waitForEdge()
-// }
+
+ISR(TIMER2_COMP_vect){
+	// RED_OFF;
+	// return; !! TEST DUTY !!
+	switch (PWM_nFET){
+		case 'A' : AnFET_off; break;
+		case 'B' : BnFET_off; break;
+		case 'C' : CnFET_off; break;
+		default : AnFET_off;BnFET_off;CnFET_off;
+	}
+}
 
 ISR(TIMER2_OVF_vect){
-	waitingForT2 = 0; // ~4us per tick / ~1ms per full range
+	// RED_ON;
+	// return; !! TEST DUTY !!
+	switch (PWM_nFET){
+		case 'A' : AnFET_on; break;
+		case 'B' : BnFET_on; break;
+		case 'C' : CnFET_on; break;
+		default : AnFET_off;BnFET_off;CnFET_off;
+	}
 }
-
-// Global settings
-
-// Timer 1 = 16MHz		Commutation timeing / RC pulse measurement
-// Timer 2 = 16MHz 		FET PWM
-void wait_16ms(){
+void wait128us(){
 	waitingForT0 = 1;
-	TCNT0 = 0;
-	while (waitingForT0){};
+	while(waitingForT0){}
 }
-
-void wait_4us(uint8_t ticks){
-	waitingForT2 = 1;
-	TCNT2 = 254-ticks;
-	// if (TCNT2 < 128) TCNT2 = 128;
-	while (waitingForT2){};
-}
-
 void waitForEdge(uint8_t edgeCompType){
+	// return; // !! TEST DUTY WITH LED
 	uint8_t targetEdge = edgeCompType << ACO;
-	RED_ON;
-	while ((ACSR & (1 << ACO)) != targetEdge){}
-	RED_OFF;
+	// waitingForT0 = 1;
+	// RED_ON;
+	while ( (ACSR & (1 << ACO)) != targetEdge){}
+	// RED_OFF;
 }
 
 void comparator_A(){
@@ -110,12 +114,13 @@ ACME 		ADEN 		MUX2..0 	Analog Comparator Negative Input
 */
 
 int main(void){
-	TCCR0 	= (1<<CS02) | (0<<CS01) | (1<<CS00); // clk/1024 ~ 16ms per OVF
-	TCCR1B 	= (1<<CS10) | (1<<ICNC1); 	// 16MHz with h/w noise reduction on Input Capture
-	TCCR2 	= (1<<CS21) | (1<<CS20); 	// clk/64 = 1/4MHz each tick ~4us
-	TIMSK 	= (1<<TOIE0)| (0<<TOIE1) | (1<<TOIE2) | (1<<TICIE1); // Enable InputCapture Interrupt : Note -(1<<OCIE1A)
-	TIFR 	= (1<<TOIE0)| (1<<TOIE1) | (1<<TOIE2) | (1<<TICIE1); // Clear pending interupts
+	TCCR0 	= (1<<CS02) | (1<<CS01) | (0<<CS00); 				// Commutations	 2MHz
+	TCCR1B 	= (0<<CS12) | (0<<CS11) | (1<<CS10) | (1<<ICNC1); 	// RC INPUT 	16MHz[h/w noise reduction on Input Capture]
+	TCCR2 	= (0<<CS22) | (1<<CS21) | (0<<CS20); 				// FET PWM 		 2MHz
+	TIMSK 	= (1<<TOIE0)| (0<<TOIE1) | (1<<TOIE2) | (1<<TICIE1) | (1<<OCIE2);
+	TIFR 	= (1<<TOIE0)| (1<<TOIE1) | (1<<TOIE2) | (1<<TICIE1) | (1<<OCIE2);
 
+	OCR2 	= 0;
 	TCNT0 	= 0;
 	TCNT1 	= 0;
 	TCNT2 	= 0;
@@ -130,57 +135,59 @@ int main(void){
 	PORTD	= (1 << ApFET);
 
 	sei();
-
+	RED_ON;
 	while(1){
 
 		if (pulseWidth < 16000 || pulseWidth > 32000) {
-			RED_ON;
-		} else if (pulseWidth > 24000) {
-			RED_OFF;
-			GRN_ON;
-			// uint8_t duty_on = (pulseWidth-24000) >> 5; // 0 --> 1ms | 50% --> 8% |
 			AnFET_off;BnFET_off;CnFET_off;
 			ApFET_off;BpFET_off;CpFET_off;
-
-			// anti clockwise
-			// BpFET_on; CnFET_on; wait_4us(15);BpFET_off;CnFET_off;wait_4us(100);wait_16ms();wait_16ms();wait_16ms();wait_16ms();
-			// ApFET_on; CnFET_on; wait_4us(15);ApFET_off;CnFET_off;wait_4us(100);wait_16ms();wait_16ms();wait_16ms();wait_16ms();
-			// ApFET_on; BnFET_on; wait_4us(15);ApFET_off;BnFET_off;wait_4us(100);wait_16ms();wait_16ms();wait_16ms();wait_16ms();
-			// CpFET_on; BnFET_on; wait_4us(15);CpFET_off;BnFET_off;wait_4us(100);wait_16ms();wait_16ms();wait_16ms();wait_16ms();
-			// CpFET_on; AnFET_on; wait_4us(15);CpFET_off;AnFET_off;wait_4us(100);wait_16ms();wait_16ms();wait_16ms();wait_16ms();
-			// BpFET_on; AnFET_on; wait_4us(15);BpFET_off;AnFET_off;wait_4us(100);wait_16ms();wait_16ms();wait_16ms();wait_16ms();
-
-			comparator_A();BpFET_on;CnFET_on; wait_4us(15);CnFET_off;wait_4us(100);waitForEdge(1);RED_OFF;
-			comparator_B();ApFET_on;CnFET_on; wait_4us(15);CnFET_off;wait_4us(100);waitForEdge(0);RED_OFF;
-			comparator_C();ApFET_on;BnFET_on; wait_4us(15);BnFET_off;wait_4us(100);waitForEdge(1);RED_OFF;
-			comparator_A();CpFET_on;BnFET_on; wait_4us(15);BnFET_off;wait_4us(100);waitForEdge(0);RED_OFF;
-			comparator_B();CpFET_on;AnFET_on; wait_4us(15);AnFET_off;wait_4us(100);waitForEdge(1);RED_OFF;
-			comparator_C();BpFET_on;AnFET_on; wait_4us(15);AnFET_off;wait_4us(100);waitForEdge(0);RED_OFF;
-		} else {
-			AnFET_off;BnFET_off;CnFET_off;
-			ApFET_off;BpFET_off;CpFET_off;
+			// RED_ON;
 			GRN_OFF;
-		}
+		} else {
+			GRN_ON;
+			OCR2 = (pulseWidth - 16000) >> 7;
+			if (OCR2 < 1) OCR2 = 1;
+			if (OCR2 > 50) OCR2 = 50;
+			TCNT2 = 0;
+			AnFET_off;BnFET_off;CnFET_off;
+			ApFET_off;BpFET_off;CpFET_off;
 
+			// anti clockwise (on current wiring)
+			comparator_A();BpFET_on;PWM_nFET = 'C'; waitForEdge(1);
+			comparator_B();ApFET_on;PWM_nFET = 'C'; waitForEdge(0);
+			comparator_C();ApFET_on;PWM_nFET = 'B'; waitForEdge(1);
+			comparator_A();CpFET_on;PWM_nFET = 'B'; waitForEdge(0);
+			comparator_B();CpFET_on;PWM_nFET = 'A'; waitForEdge(1);
+			comparator_C();BpFET_on;PWM_nFET = 'A'; waitForEdge(0);
+			RED_OFF;
+		}
 	}
 }
-
-		// +     -     Cmp   	Edge
-		// B --> C 	Waiting A 	HIGH
-		// A --> C 	Waiting B 	LOW
-		// A --> B 	Waiting C 	HIGH
-		// C --> B 	Waiting A 	LOW
-		// C --> A 	Waiting B 	HIGH
-		// B --> A 	Waiting C 	LOW
-
-
 /*
+Commutations
+	+     -     Comparator  Edge
+	B --> C 	Waiting A 	HIGH
+	A --> C 	Waiting B 	LOW
+	A --> B 	Waiting C 	HIGH
+	C --> B 	Waiting A 	LOW
+	C --> A 	Waiting B 	HIGH
+	B --> A 	Waiting C 	LOW
+
+Estimations on crude timing
 	12v
 	--> 1.2v @ 10% duty
-	--> 2580rpm ~43r/s
+	--> 2150kV => 2580rpm ~43rps
 	--> 12N14P (guess?) (it has 12 coils)
 	--> 7x43 = 301eRPS
 	--> ~3.3ms per loop
-	--> ~550ms per commutation section
+	--> ~550us per commutation section
 	--> ~137ticks
+
+CS12 	CS11 	CS10	Description 	RATE 	Tick 	 Ticks/us 	8-bitOVF 	16-bitOVF
+0 		0 		0		No clock
+0 		0 		1		clk/1 			 16MHz   60ns  		16		  16us	      4096us
+0 		1 		0		clk/8 			  2MHz  0.5us 		 2		 128us  	    33ms
+0 		1 		1		clk/64 		 	250KHz 	  4us 		1/4		 1.0ms 		   250ms
+1 		0 		0		clk/256  		 62KHz 	 16us 		1/16	 4.1ms 		   1.0s
+1 		0 		1		clk/1024 		 15KH`   64us 		1/64	16.4ms 		   4.2s
 */
