@@ -16,6 +16,10 @@ read:
 flash:
 	@$(AVRDUDE) -b 115200 									-U flash:w:main.hex:i
 
+kill:
+	avra -fI 												kill.asm
+	@$(AVRDUDE) -b 115200 									-U flash:w:kill.hex:i
+
 clean:
 	@rm -f *.elf
 	@rm -f *.hex
