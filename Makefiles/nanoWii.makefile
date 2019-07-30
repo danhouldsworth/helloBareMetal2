@@ -1,5 +1,8 @@
-# AVRDUDE = avrdude -p ATmega32u4 -c avr109 -P /dev/tty.usbmodem11
-AVRDUDE = avrdude -p ATmega32u4 -c avr109 -P /dev/tty.usbmodem1421
+# 1. Short reset - expect green pulse
+# 2. ls /dev/tty.usbmodem* - note device
+# 3. update Makefile
+# 4. Short reset then flash
+AVRDUDE = avrdude -p ATmega32u4 -c avr109 -P /dev/tty.usbmodem41
 
 all : build
 

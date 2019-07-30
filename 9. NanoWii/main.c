@@ -1,17 +1,10 @@
 /*
-            328p        1284p
-    SDA     PC4         PC1
-    SCL     PC5         PC0
-    Board   SL018       DC1338
-    Trigger PC3         -
-    SQW     -           PD7
-
-MPU-6050 Breakout board
+NanoWii
+GREEN PortD5 ON@LOW
 */
 
+
 #include <avr/interrupt.h>
-#include <avr/pgmspace.h>
-#include <stdlib.h>
 #define SLVADD      0xd0 //
 #define I2C_START   TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTA);   while((TWCR & (1 << TWINT)) == 0){}
 #define I2C_TX      TWCR = (1 << TWINT) | (1 << TWEN);                  while((TWCR & (1 << TWINT)) == 0){}
@@ -50,8 +43,8 @@ ISR(TIMER0_OVF_vect) {
 
 void Init_Hardware() {
         cli();
-        // UDIEN = 0;
-        DDRB = 1 << 7;
+        UDIEN = 0;
+        // DDRB = 1 << 7;
         //============================================
         // Setup I2C at 400kHz
         //============================================
@@ -143,8 +136,8 @@ void displaySignedWordAsBlink(uint8_t highByte, uint8_t lowByte, char scaleFacto
     } else {
         word = word >> scaleFactor; // 1G --> 64
     }
-    // PORTD ^=  (1 << 5);
-    PORTB ^=  (1 << 7);
+    PORTD ^=  (1 << 5);
+    // PORTB ^=  (1 << 7);
     if (word>1000) word = 1000;
     if (word<5) word = 5;
     wait(word);
@@ -152,6 +145,7 @@ void displaySignedWordAsBlink(uint8_t highByte, uint8_t lowByte, char scaleFacto
 
 
 int main() {
+    UDIEN = 0;
     Init_Hardware();
     MPUconfigure();
     while(1) {

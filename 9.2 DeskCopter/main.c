@@ -173,8 +173,8 @@ int main(void){
 
 	MPUconfigure();
 
-	// double kP 			= 6000.0 / PIby2;
-	double kP 			= 0;
+	double kP 			= 6000.0 / PIby2;
+	// double kP 			= 0;
 	double kD 			= 130.0 / PIby2;
 	double hover 		= 1500.0;
 	double maxThrust    =  100.0;
